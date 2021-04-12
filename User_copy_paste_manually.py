@@ -14,33 +14,36 @@ import pyperclip as pyc
 class DataBase_functions(Database):
 
     def storing_copied_text(self,text):
-        cur = Database.return_cursor(self)
-        conn = Database.return_connector(self)
+        if text != "\n":
+            cur = Database.return_cursor(self)
+            conn = Database.return_connector(self)
 
-        #creating table if not created
-        test = Database.create_table(self)
+            #creating table if not created
+            test = Database.create_table(self)
 
-        fetch_query = """
-                          SELECT Data from Clip_data order by Id desc LIMIT 1;
-                      """
+            fetch_query = """
+                              SELECT Data from Clip_data order by Id desc LIMIT 1;
+                          """
 
-        cur.execute(fetch_query)
-        fetched_data = cur.fetchone()
+            cur.execute(fetch_query)
+            fetched_data = cur.fetchone()
 
-        #part of code will check for repetition of data in and show msg accordingly 
-        #if not exists in data it will store it else show msg
-        if fetched_data == None or fetched_data[0] != text:
-            insert_query = "INSERT INTO Clip_data(Data) VALUES (?);"
+            #part of code will check for repetition of data in and show msg accordingly 
+            #if not exists in data it will store it else show msg
+            if fetched_data == None or fetched_data[0] != text:
+                insert_query = "INSERT INTO Clip_data(Data) VALUES (?);"
 
-            try:
-                cur.execute(insert_query,(text,))
-                conn.commit()
-            except Exception as e:
-                tmsg.showinfo("Issue", "There is some in storing({})".format(e))
+                try:
+                    cur.execute(insert_query,(text,))
+                    conn.commit()
+                except Exception as e:
+                    tmsg.showinfo("Issue", "There is some in storing({})".format(e))
+                else:
+                    tmsg.showinfo("Successful", "Done!")
             else:
-                tmsg.showinfo("Successful", "Done!")
+                tmsg.showinfo("Already", "The text you want to store is already stored in Database.")
         else:
-            tmsg.showinfo("Already", "The text you want to store is already stored in Database.")
+            tmsg.showinfo("Error","Please don't make empty entry!")
 
 
     #to delete table and re-create it 
