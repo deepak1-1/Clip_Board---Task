@@ -124,7 +124,7 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
         text_frame = Frame(root,pady = 20)
 
         #adding scrollbar to text_frame to make ease of going up and down in long copied text
-        scroll_bar = Scrollbar(text_frame)  
+        scroll_bar = Scrollbar(text_frame) #vertical scrollbar  
         scroll_bar.pack(side = RIGHT, fill = Y)       
         
         #to paste copied text by user
@@ -236,7 +236,7 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
         
 
         text_frame.pack(fill=X) #packing frame 2
-        
+
 
 if __name__ == "__main__":
     gui = GUI_part()
