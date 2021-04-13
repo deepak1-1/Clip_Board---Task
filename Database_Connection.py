@@ -16,7 +16,8 @@ class Database:
         query = """   CREATE TABLE Clip_data(
                             Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                             Data CHAR NOT NUll,
-                            Date_ CHAR
+                            Date_ CHAR NOT NULL,
+                            Time_ CHAR NOT NULL
                         );
                  """
         #handling Exception if table already exists
