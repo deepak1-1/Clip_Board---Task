@@ -15,7 +15,8 @@ class Database:
         #Query to create A Table inside Database
         query = """   CREATE TABLE Clip_data(
                             Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                            Data Char NOT NUll
+                            Data CHAR NOT NUll,
+                            Date_ CHAR
                         );
                  """
         #handling Exception if table already exists
