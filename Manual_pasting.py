@@ -15,10 +15,18 @@ import pyperclip as pyc
 class DataBase_functions(Database):
 
     #to save copied thing to our database it will through messagebox depending whether successful or not 
-    def storing_copied_text( self, text ):
+    def storing_copied_text( self, text, call_from):
+
+        # why So because when we do str(pyperclip.paste()) it provide unnecessary carriage return
+        # in string so to store actual string we replaced all carriage return - \r  
+        if call_from == "last_copied":
+            text = text.replace("\r","")
+
+        # to remove spaces or multi new lines from last
+        text = text.strip()
 
         # whenever text widget is empty it will return a empty text so to handle that we checked it 
-        if text != "\n":
+        if text != "":
 
             # connecting to database and using it's function through parent class Database
             #cur to execute sql query and conn to commit the changes same time
@@ -26,7 +34,7 @@ class DataBase_functions(Database):
             conn = Database.return_connector(self)
 
             #creating table if not created
-            Database.create_table(self)
+            Database.create_table_clip_data(self)
 
             # to fetch details of previously saved copied thing
             fetch_query = """
@@ -75,14 +83,19 @@ class DataBase_functions(Database):
         answer = tmsg.askquestion("Sure?","Do you want to delete all record saved Previously?")
 
         if answer == "yes":
-            Database.delete_table(self)
 
-            return_stat = Database.create_table(self)
+            return_stat_clip_data = Database.delete_data_inside_table( self, "Clip_data" )
+            return_stat_recycle_data = Database.delete_data_inside_table(self, "Recycle_bin")
 
-            if return_stat:
+            if return_stat_clip_data == True and return_stat_recycle_data == True:
                 tmsg.showinfo("Successful", "Done!")
-            else:
-                tmsg.showinfo("Issue","Some issue({})".format(return_stat))
+            elif return_stat_clip_data != True:
+                tmsg.showinfo("Issue","Some issue in deleting from Clip data\n\r{}".format(
+                                return_stat_clip_data))
+            elif return_stat_recycle_data != True:
+                tmsg.showinfo("Issue","Some issue in deleting from recycle bin\n\r{}".format(
+                                return_stat_recycle_data))
+
         else:
             tmsg.showinfo("Stopped", "Successfully Terminated!")
         
@@ -135,7 +148,7 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
 
         #to pass text to our database class function when clicked on this button
         Button(text_frame,text="Save",
-            command = lambda : DataBase_functions.storing_copied_text(self,text.get("1.0","end")),
+            command =lambda : DataBase_functions.storing_copied_text(self,text.get("1.0","end"),"manual_paste"),
             width=15,height=2, relief=GROOVE, border=10,font="lucida 15 bold",
             justify=CENTER, bg="blue",fg="white"
             ).pack(pady=10)
@@ -180,7 +193,7 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
 
         #to pass text to our database class function when clicked on this button
         Button(text_frame,text="Save",
-            command = lambda : DataBase_functions.storing_copied_text(self,text.get("1.0","end")),
+            command = lambda : DataBase_functions.storing_copied_text(self,text.get("1.0","end"),"last_copied"),
             width=15,height=2, relief=GROOVE, border=10,font="lucida 15 bold",
             justify=CENTER, bg="blue",fg="white"
             ).pack(pady=10)
