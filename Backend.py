@@ -63,14 +63,58 @@ class In_out_clip_data( Database ):
                 else:
                     tmsg.showwarning( "Not Done", "Not copied any text")
 
-    def delete_(self, index_, dict_of_elements, edited_text):
-        print(edited_text)
-        pass
+    def delete_(self, index_, dict_of_elements, edited_text, text_widget):
 
-    def update_(self, index_, dict_of_elements, edited_text):
-        print(edited_text)
-        pass
+        cursor = Database.return_cursor(self)
+        connector = Database.return_connector(self)
 
+        edited_text = edited_text.strip()
+        
+        if edited_text == dict_of_elements[index_] :
+
+            delete_clip_data_query = "DELETE FROM Clip_data WHERE Id = (?);"
+            insert_recycle_bin_query = """
+                                        INSERT INTO Recycle_bin(Data) VALUES (?);
+                                       """
+
+            try:
+                cursor.execute(delete_clip_data_query, (index_, ))
+                cursor.execute(insert_recycle_bin_query, (edited_text, ))
+                connector.commit()
+                text_widget.delete("1.0","end")
+                dict_of_elements.pop(index_)
+            except Exception as e:
+                tmsg.showinfo("Issue", "Some Issue\n\r{}".format(e))
+            else:
+                tmsg.showinfo("Deleted","Successfully Done!")
+                self.copied_element_showing( dict_of_elements )
+        else:
+            tmsg.showinfo("Issue","you have edited text if you want to delete don't edit")
+
+
+    def update_(self, index_, dict_of_elements, edited_text, text_widget):
+
+        cursor = Database.return_cursor(self)
+        connector = Database.return_connector(self)
+        
+        edited_text = edited_text.strip()
+
+        if edited_text != dict_of_elements[index_] :
+
+            update_query = "UPDATE  Clip_data set Data = (?) where Id = (?);"
+
+            try:
+                cursor.execute(update_query,( edited_text, index_ ))
+                connector.commit()
+                dict_of_elements[index_] = edited_text
+            except Exception as e:
+                tmsg.showinfo("Issue","Some Issue\n\r{}".format(e))
+            else:
+                tmsg.showinfo("Done","Successfully Updated")
+                self.copied_element_showing( dict_of_elements )
+
+        else:
+            tmsg.showinfo("Issue","You haven't edited main text, can't update")
 
 class In_out_recycle_bin_data( Database ):
 
