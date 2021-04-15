@@ -15,7 +15,8 @@ class Database:
 
         recycle_bin_query = """ CREATE TABLE Recycle_bin(
                                  Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                                 Data CHAR NOT NUll   
+                                 Data CHAR NOT NUll,
+                                 Date_ CHAR NOT NULL   
                                 );
                             """
 
@@ -76,4 +77,4 @@ if __name__ == "__main__":
 
     db.create_table_clip_data()
     db.create_table_recycle_bin()
-    # print(db.delete_data_inside_table("Clip_data"))
+    

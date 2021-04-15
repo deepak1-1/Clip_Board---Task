@@ -30,7 +30,7 @@ class In_out_clip_data( Database ):
         if user_date > today_date:
             tmsg.showinfo("Future Date","You selected future Date, select again")
         elif user_date < date_before_6_days :
-            tmsg.showinfo("Issue","you gave date before 6 days, we clear data stored before 6 days")
+            tmsg.showinfo("Issue","we can only have last six days data,choose date accordingly")
         else:
             date_to_fetch = user_date.strftime("%d/%m")
             fetch_query = "SELECT Id,Data FROM Clip_data where Date_ = (?);"
@@ -38,28 +38,31 @@ class In_out_clip_data( Database ):
             cursor.execute(fetch_query, (date_to_fetch,))
             fetched_data = cursor.fetchall()
 
-            return dict(fetched_data)
+            self.copied_element_showing( dict(fetched_data) )
 
 
     
     # To fetched previously saved last n entry which user want to fetch  
     def fetch_previous_n_saved(self, n_previous ):
 
-        cursor = Database.return_cursor(self)
-        connector = Database.return_connector(self)
+        if n_previous != 0:
 
-        fetch_query = "SELECT Id,Data FROM Clip_data ORDER BY Id Desc limit {}".format( n_previous )
+            cursor = Database.return_cursor(self)
+            connector = Database.return_connector(self)
 
-        cursor.execute( fetch_query )
-        fetch_data = cursor.fetchall()
+            fetch_query = "SELECT Id,Data FROM Clip_data ORDER BY Id Desc limit {}".format( n_previous )
 
-        if len(fetch_data) != n_previous:
-            tmsg.showwarning("Error","""There are not much data inside database you want to fetch
-                                     \rmaximum last data you can fetch for now is {}
-                                  """.format(len(fetch_data)))
-            return False
+            cursor.execute( fetch_query )
+            fetch_data = cursor.fetchall()
+
+            if len(fetch_data) != n_previous:
+                tmsg.showwarning("Error","""There are not much data inside database you want to fetch
+                                         \rmaximum last data you can fetch for now is {}
+                                      """.format(len(fetch_data)))
+            else:
+                self.copied_element_showing( dict(fetch_data) )
         else:
-            return dict(fetch_data)
+            tmsg.showinfo("Empty","Enter number!")
 
     def copy_(self, index_, dict_of_elements, edited_text):
 
@@ -150,6 +153,34 @@ class In_out_clip_data( Database ):
             tmsg.showinfo("Issue","You haven't edited main text, can't update")
 
 
+    def delete_all(self, dict_of_elements):
+
+        answer = tmsg.askquestion("Sure?","Are you sure you want to delete all?")
+        if answer == "yes":
+
+            today_date = datetime.now().strftime("%d/%m")
+            cursor = Database.return_cursor(self)
+            connector = Database.return_connector(self)        
+            delete_query = "DELETE FROM Clip_data WHERE Id = (?);"
+            recycle_query = "INSERT INTO Recycle_bin( Data, Date_) VALUES (?,?);"
+
+            try:
+                for key in dict_of_elements:
+                    cursor.execute(delete_query,(key,))
+                    cursor.execute(recycle_query,(dict_of_elements[key], today_date,))
+                connector.commit()
+                dict_of_elements.clear()
+            except Exception as e:
+                tmsg.showinfo("Issue","Issue - {}".format(e))
+            else:
+                tmsg.showinfo("Deleted","Moved to recycle bin")
+                self.main_window(0)
+        else:
+            tmsg.showinfo("stopped","Not deleted any text")
+
+
+
+
 class In_out_recycle_bin_data( Database ):
 
     def fetch_all_data_recycle_bin(self):
@@ -161,7 +192,7 @@ class In_out_recycle_bin_data( Database ):
         cursor.execute(fetch_query)
         fetched_data = cursor.fetchall()
 
-        return dict(fetched_data)
+        self.recycle_bin_data_showing( dict(fetched_data) )
 
 
     def fetch_data_for_date(self, user_date):
@@ -173,7 +204,7 @@ class In_out_recycle_bin_data( Database ):
         date_before_4_days = ( today_date - timedelta( days=4 ))
         
         try:
-            user_date = datetime.strptime( date_, "%d/%m/%Y").date()
+            user_date = datetime.strptime( user_date, "%d/%m/%Y").date()
         except ValueError:
             tmsg.showinfo("Not Valid","Date you entered either not in given format or invalid")
             return
@@ -191,7 +222,7 @@ class In_out_recycle_bin_data( Database ):
             cursor.execute(fetch_query, (date_to_fetch,))
             fetched_data = cursor.fetchall()
 
-            return dict(fetched_data)
+            self.recycle_bin_data_showing( dict(fetched_data) )
 
 
     def restore_(self, index_, dict_of_elements):
@@ -213,6 +244,7 @@ class In_out_recycle_bin_data( Database ):
             tmsg.showinfo("Issue","Issue - {}".format(e))
         else:
             tmsg.showinfo("Restored","Restored Successfully")
+            self.recycle_bin_data_showing( dict_of_elements )
 
     def delete_(self, index_, dict_of_elements):
 
@@ -228,6 +260,7 @@ class In_out_recycle_bin_data( Database ):
             tmsg.showinfo("Issue","Issue - {}".format(e))
         else:
             tmsg.showinfo("Deleted","Permanently deleted text!")
+            self.recycle_bin_data_showing( dict_of_elements )
 
 
     def restore_all(self, dict_of_elements):
@@ -250,20 +283,35 @@ class In_out_recycle_bin_data( Database ):
         else:
             tmsg.showinfo("Restored","Successfully restored all")
 
+            self.main_window(0)
+
 
     def delete_all(self, dict_of_elements):
-        
-        result = Database.delete_data_inside_table(self, Recycle_bin)
 
-        if result == True:
-            dict_of_elements.clear()
-            tmsg.showinfo("Done","Successfully cleared Recycle bin!")
+        answer = tmsg.askquestion("Sure","Are you sure you want to delete all data Permanently?")
+
+        if answer == "yes":
+            cursor = Database.return_cursor(self)
+            connector = Database.return_connector(self)        
+            delete_query = "DELETE FROM Recycle_bin WHERE Id = (?);"
+
+            try:
+                for key in dict_of_elements:
+                    cursor.execute(delete_query,(key,))
+                connector.commit()
+                dict_of_elements.clear()
+            except Exception as e:
+                tmsg.showinfo("Issue","Issue - {}".format(e))
+            else:
+                tmsg.showinfo("Deleted","Permanently Deleted All")
+                self.main_window(0)
         else:
-            tmsg.showinfo("Issue","Issue - {}".format(result))
-
+            tmsg.showinfo("Stopped","Not deleted any stored text in recycle bin")
 
 if __name__ == "__main__":
 
-    test = In_out_clip_data() 
-    test.fetch_previous_n_saved(5)
+    """
+     you can use the above classes here
+     just create object of class and use it's methods 
+    """
 
