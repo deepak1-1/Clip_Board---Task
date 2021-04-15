@@ -76,11 +76,12 @@ class DataBase_functions(Database):
             tmsg.showinfo("Error","Please don't make empty entry!")
 
 
-    #to delete table and re-create it 
+    #to delete data inside tables 
     def delete_all(self):
 
         # tkinter.messagebox.askquestion() return yes or no so to store we created answer variable
-        answer = tmsg.askquestion("Sure?","Do you want to delete all record saved Previously?")
+        answer = tmsg.askquestion("Sure?",
+                                  "Do you want to delete all record(Clip data and recycle bin data) ?")
 
         if answer == "yes":
 
@@ -97,7 +98,7 @@ class DataBase_functions(Database):
                                 return_stat_recycle_data))
 
         else:
-            tmsg.showinfo("Stopped", "Successfully Terminated!")
+            tmsg.showwarning("Stopped", "Successfully Terminated!")
         
         
 
@@ -106,15 +107,13 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
 
 
     #method to go back to main window and quiting the app
-    def go_back_main_exit(self):
+    def last_copied_refresh(self, text_widget):
 
-        # created menu in root as root is global everywhere, so there is no error
-        Menubar = Menu(root)
-        Menubar.add_command(label='Go back',command=lambda : self.main_window(0))
-        Menubar.add_command(label="Exit",command=quit)
-        root.config(menu=Menubar)
+        copied_text = str(pyc.paste())
+        text_widget.delete("1.0","end")
+        text_widget.insert("1.0", copied_text)
 
-
+    
     #allow user to manually paste their copied text to save it in database
     def manual_paste(self):
         global root
@@ -124,7 +123,11 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
         root = Tk()
         root.title("Manual Copy")
 
-        self.go_back_main_exit()
+        # created menu in root
+        Menubar = Menu(root)
+        Menubar.add_command(label='Go back',command=lambda : self.main_window(0))
+        Menubar.add_command(label="Exit",command=quit)
+        root.config(menu=Menubar)
 
         #Frame to help user what to do
         heading = Frame(root, bg="grey")
@@ -168,7 +171,12 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
         root = Tk()#creating window
         root.title("Copied Text")
 
-        self.go_back_main_exit()#calling method GUI_part.go_back_main_exit(self)
+        # created menu in root as root is global everywhere, so there is no error
+        Menubar = Menu(root)
+        Menubar.add_command(label='Go back',command=lambda : self.main_window(0))
+        Menubar.add_command(label="Refresh",command=lambda :self.last_copied_refresh(text))
+        Menubar.add_command(label="Exit",command=quit)
+        root.config(menu=Menubar)
 
         heading = Frame(root, bg="grey")#heading Frame 
         Label(heading,text="Previously copied text is shown below,you can edit it too",
@@ -192,6 +200,7 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
         text.insert("1.0",copied_text)
 
         #to pass text to our database class function when clicked on this button
+
         Button(text_frame,text="Save",
             command = lambda : DataBase_functions.storing_copied_text(self,text.get("1.0","end"),"last_copied"),
             width=15,height=2, relief=GROOVE, border=10,font="lucida 15 bold",
