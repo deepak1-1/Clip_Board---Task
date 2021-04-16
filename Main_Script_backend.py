@@ -11,11 +11,34 @@ import pyperclip as pyc
 
 
 
+
 class Scripts( Database ):
 
     # to run script at backend which will paste copied data to database
     def pasting_backend(self):
-        pass
+
+        cursor = Database.return_cursor(self)
+        connector = Database.return_connector(self)
+
+        today_date = datetime.now().strftime("%d/%m")
+
+        insert_query = "INSERT INTO Clip_data( Data, Date_, Time_) VALUES (?,?,?)"
+
+        previous_text = ""
+        flag = 0
+        while True:
+            if flag == 0:
+                copied_text = str(pyc.paste())
+                flag = 1
+            else:
+                copied_text = str(pyc.waitForNewPaste())
+            copied_text = copied_text.replace("\r", "").strip()
+            if copied_text != previous_text and copied_text != "":
+                time_now = datetime.now().strftime("%H:%M")
+                previous_text = copied_text
+
+                cursor.execute(insert_query, (copied_text, today_date, time_now))
+        
 
     # to clear clip_data everyday(to delete data which is stored before 7 days)
     def delete_data_before_7_days(self):
