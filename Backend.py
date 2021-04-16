@@ -8,9 +8,10 @@ import tkinter.messagebox as tmsg
 import pyperclip as pyc
 
 
-
+#it will provide function for database used to manipulate main clip_data
 class In_out_clip_data( Database ):
 
+    #to return particular date's data of which user want to look
     def fetch_for_particular_date(self, date_):# date format dd/mm/yyyy
 
         cursor = Database.return_cursor(self)
@@ -66,12 +67,12 @@ class In_out_clip_data( Database ):
 
     def copy_(self, index_, dict_of_elements, edited_text):
 
-        previously_copied_text = pyc.paste()
-
-        previously_copied_text = previously_copied_text.replace("\r","").strip()
-        
+        previously_copied_text = pyc.paste()#to get last copied text
+        previously_copied_text = previously_copied_text.replace("\r","").strip()        
         edited_text = edited_text.strip()
 
+        #checking for last copied text whether it is same or what
+        #also checking is user edited text shown in text widget or not then asking it some questions
         if dict_of_elements[index_] == edited_text:
             if edited_text != previously_copied_text:
                 pyc.copy( edited_text )
@@ -97,13 +98,13 @@ class In_out_clip_data( Database ):
                 else:
                     tmsg.showwarning( "Not Done", "Not copied any text")
 
+    #to deleted selected element and then show remaining values again
+    #if there is no value left after deletion then it will show recycle bin
     def delete_(self, index_, dict_of_elements, edited_text, text_widget):
 
         cursor = Database.return_cursor(self)
         connector = Database.return_connector(self)
-
         today_date = datetime.now().strftime("%d/%m")
-
         edited_text = edited_text.strip()
         
         if edited_text == dict_of_elements[index_] :
@@ -123,16 +124,19 @@ class In_out_clip_data( Database ):
                 tmsg.showinfo("Issue", "Some Issue\n\r{}".format(e))
             else:
                 tmsg.showinfo("Deleted","Moved to recycle bin")
-                self.copied_element_showing( dict_of_elements )
+                if dict_of_elements :
+                    self.copied_element_showing( dict_of_elements )
+                else:
+                    self.fetch_all_data_recycle_bin()
         else:
             tmsg.showinfo("Issue","you have edited text if you want to delete don't edit")
 
 
+    #to update a text which user want to edit if not edited then showing messages
     def update_(self, index_, dict_of_elements, edited_text, text_widget):
 
         cursor = Database.return_cursor(self)
         connector = Database.return_connector(self)
-        
         edited_text = edited_text.strip()
 
         if edited_text != dict_of_elements[index_] :
@@ -153,6 +157,7 @@ class In_out_clip_data( Database ):
             tmsg.showinfo("Issue","You haven't edited main text, can't update")
 
 
+    #it will move all text to recycle bin and then show recycle bin 
     def delete_all(self, dict_of_elements):
 
         answer = tmsg.askquestion("Sure?","Are you sure you want to delete all?")
@@ -174,15 +179,16 @@ class In_out_clip_data( Database ):
                 tmsg.showinfo("Issue","Issue - {}".format(e))
             else:
                 tmsg.showinfo("Deleted","Moved to recycle bin")
-                self.main_window(0)
+                self.fetch_all_data_recycle_bin(  )
         else:
             tmsg.showinfo("stopped","Not deleted any text")
 
 
 
-
+#class to provide functionality to recycle bin data
 class In_out_recycle_bin_data( Database ):
 
+    #to show all data inside recycle bin
     def fetch_all_data_recycle_bin(self):
 
         cursor = Database.return_cursor(self)
@@ -194,12 +200,11 @@ class In_out_recycle_bin_data( Database ):
 
         self.recycle_bin_data_showing( dict(fetched_data) )
 
-
+    #to show data for particular date
     def fetch_data_for_date(self, user_date):
 
         cursor = Database.return_cursor(self)
         connector = Database.return_connector(self)
-
         today_date = datetime.now().date()
         date_before_4_days = ( today_date - timedelta( days=4 ))
         
@@ -224,45 +229,56 @@ class In_out_recycle_bin_data( Database ):
 
             self.recycle_bin_data_showing( dict(fetched_data) )
 
-
+    #to store data again to main clip_data table
     def restore_(self, index_, dict_of_elements):
 
         cursor = Database.return_cursor(self)
         connector = Database.return_connector(self)
-
         today_date,time_now = datetime.now().strftime("%d/%m %H:%M").split()
 
         delete_query = "DELETE FROM Recycle_bin WHERE Id = (?);"
         restore_query = "INSERT INTO Clip_data(Data, Date_, Time_) VALUES (?,?,?);" 
         
+        #handling exception if any during inserting data inside database or removing it from
         try:
             cursor.execute(delete_query,(index_,))
             cursor.execute(restore_query,(dict_of_elements[index_], today_date, time_now,))
             connector.commit()
-            dict_of_elements = dict_of_elements.pop( index_ )
+            dict_of_elements.pop( index_ )
         except Exception as e:
             tmsg.showinfo("Issue","Issue - {}".format(e))
         else:
             tmsg.showinfo("Restored","Restored Successfully")
-            self.recycle_bin_data_showing( dict_of_elements )
+            if dict_of_elements:
+                self.recycle_bin_data_showing( dict_of_elements )
+            else:
+                self.main_window( 0 )
 
+    #to delete selected recycle bin data through user 
     def delete_(self, index_, dict_of_elements):
+
 
         cursor = Database.return_cursor(self)
         connector = Database.return_connector(self)        
         delete_query = "DELETE FROM Recycle_bin WHERE Id = (?);"
 
+        #handling error if any
         try:
-            cursor.execute(delete_query, index_)
+            cursor.execute(delete_query, (index_,))
             connector.commit()
-            dict_of_elements = dict_of_elements.pop( index_ )
+            dict_of_elements.pop( index_ )
         except Exception as e:
             tmsg.showinfo("Issue","Issue - {}".format(e))
         else:
             tmsg.showinfo("Deleted","Permanently deleted text!")
-            self.recycle_bin_data_showing( dict_of_elements )
 
+            if dict_of_elements:
+                self.recycle_bin_data_showing( dict_of_elements )
+            else:
+                self.main_window( 0 )
 
+    #to restore all data which is inside dic_of_elemnts provided by user
+    # and will redirect you to main window after success
     def restore_all(self, dict_of_elements):
 
         cursor = Database.return_cursor(self)
@@ -286,6 +302,8 @@ class In_out_recycle_bin_data( Database ):
             self.main_window(0)
 
 
+    #to delete all data inside dict_of_elements permanently 
+    # and redirect you to main window again
     def delete_all(self, dict_of_elements):
 
         answer = tmsg.askquestion("Sure","Are you sure you want to delete all data Permanently?")

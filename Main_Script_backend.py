@@ -11,7 +11,8 @@ import pyperclip as pyc
 
 
 
-
+# scripts that will run and will update data on every user's copy if user 
+# executed this script 
 class Scripts( Database ):
 
     # to run script at backend which will paste copied data to database
@@ -19,35 +20,35 @@ class Scripts( Database ):
 
         cursor = Database.return_cursor(self)
         connector = Database.return_connector(self)
-
         today_date = datetime.now().strftime("%d/%m")
-
         insert_query = "INSERT INTO Clip_data( Data, Date_, Time_) VALUES (?,?,?)"
-
         previous_text = ""
         flag = 0
+
         while True:
+
             if flag == 0:
-                copied_text = str(pyc.paste())
+                copied_text = str(pyc.paste())#to copy text previously copied when script run for first time
                 flag = 1
             else:
-                copied_text = str(pyc.waitForNewPaste())
-            copied_text = copied_text.replace("\r", "").strip()
-            if copied_text != previous_text and copied_text != "":
-                time_now = datetime.now().strftime("%H:%M")
-                previous_text = copied_text
+                copied_text = str(pyc.waitForNewPaste())# wait for new paste and then return it 
 
+            copied_text = copied_text.replace("\r", "").strip()#eliminating carriage return and \n 
+
+            if copied_text != previous_text and copied_text != "":
+
+                time_now = datetime.now().strftime("%H:%M")# to pass time in query
+                previous_text = copied_text #to check text don't repeat
                 cursor.execute(insert_query, (copied_text, today_date, time_now))
+                connector.commit() #to update the database side by side as query executed
         
 
     # to clear clip_data everyday(to delete data which is stored before 7 days)
     def delete_data_before_7_days(self):
 
         cursor = Database.return_cursor(self)
-        connector = Database.return_connector(self)
-        
+        connector = Database.return_connector(self)        
         date_before_7_days = ( datetime.now() - timedelta(days=7) ).strftime("%d/%m")
-
         delete_query = "DELETE FROM Clip_data where Date_ = (?);"
 
         cursor.execute(delete_query,(date_before_7_days,))
@@ -56,10 +57,8 @@ class Scripts( Database ):
     def delete_data_recyclebin_before_5_days(self):
         
         cursor = Database.return_cursor(self)
-        connector = Database.return_connector(self)
-        
+        connector = Database.return_connector(self)        
         date_before_5_days = ( datetime.now() - timedelta(days=5) ).strftime("%d/%m")
-
         delete_query = "DELETE FROM Recycle_bin where Date_ = (?);"
 
         cursor.execute(delete_query,(date_before_5_days,))
@@ -67,6 +66,7 @@ class Scripts( Database ):
 
 if __name__ == "__main__":
 
+    # creating object of class script
     script = Scripts() 
 
     #to execute delete_data_recyclebin_before_5_days method once in a day

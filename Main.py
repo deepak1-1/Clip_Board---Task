@@ -6,28 +6,31 @@ from Backend import *
 # import tkinter.messagebox as tmsg
 # import pyperclip as pyc
 
-
+# class to provide go back and exit methods needed to move from one window to another
 class go_back_menu:
 
-    def go_back_and_exit_menu(self,function_to_go):
+    def go_back_and_exit_menu(self, function_to_go):
 
-        Menubar = Menu(root)
+        Menubar = Menu(root)#as root is global there will be no error
         Menubar.add_command(label='Go back',command=function_to_go)
         Menubar.add_command(label="Exit",command=quit)
         root.config(menu=Menubar)
 
 
+
+#class to provide GUI related to normal clip things
 class GUI_clip( In_out_clip_data, go_back_menu ):
 
-    def copied_element_options( self, index_, dict_of_elements ):
+    #to provide options to selected data by user
+    def selected_element_options( self, index_, dict_of_elements ):
 
         global root
 
-        if dict_of_elements != {}:
+        if dict_of_elements != {}:#checking dict is empty or not
 
-            if index_ in dict_of_elements.keys():
+            if index_ in dict_of_elements.keys():# checking for key whether it exists or not
+
                 root.destroy()
-
                 root = Tk()
                 root.title("Options")
                 root.geometry("1200x600")
@@ -44,14 +47,13 @@ class GUI_clip( In_out_clip_data, go_back_menu ):
                 main_frame = Frame(root)
 
                 text_frame = Frame(main_frame,pady = 10, padx = 10)
+
                 #adding scrollbar to text_frame to make ease of going up and down in long copied text
                 scroll_bar = Scrollbar(text_frame) #vertical scrollbar  
-                scroll_bar.pack(side = RIGHT, fill = Y)       
-                
+                scroll_bar.pack(side = RIGHT, fill = Y)                  
                 #to paste copied text by user
                 text = Text(text_frame, yscrollcommand = scroll_bar.set, height=15, padx=10,width=120)
                 text.pack(fill=BOTH)
-
                 text.insert("1.0", "{}".format( dict_of_elements[index_]))
                 scroll_bar.config( command = text.yview )
 
@@ -64,13 +66,11 @@ class GUI_clip( In_out_clip_data, go_back_menu ):
                                                                 text.get("1.0", "end")),
                        fg="white", relief=GROOVE, border=10,
                        bg="blue", height=1, width=10, font="lucida 15 bold").pack()
-
                 Button(options_frame, text="Save", justify=CENTER, 
                        command=lambda : In_out_clip_data.update_(self, index_, dict_of_elements, 
                                                                   text.get("1.0", "end"), text),
                        fg="white", relief=GROOVE, border=10,
-                       bg="blue", height=1, width=10, font="lucida 15 bold").pack()
-                
+                       bg="blue", height=1, width=10, font="lucida 15 bold").pack()                
                 Button(options_frame, text="Delete", justify=CENTER, 
                        command=lambda : In_out_clip_data.delete_(self, index_, dict_of_elements,
                                                                   text.get("1.0", "end"), text),
@@ -81,13 +81,13 @@ class GUI_clip( In_out_clip_data, go_back_menu ):
 
                 main_frame.pack()
 
-            else:
+            else:#if wrong index is chosen then 
                 tmsg.showwarning("Error","Index you chosen {} is not in Data Display".format(index_))
 
-        else:
+        else:#if dict is empty then execute
             tmsg.showinfo('No Data',"There is no data")
 
-
+    # it will open a notepad like window showing the copied elements user want to fetch
     def copied_element_showing(self, dict_of_elements):
         global root
 
@@ -101,7 +101,7 @@ class GUI_clip( In_out_clip_data, go_back_menu ):
             self.go_back_and_exit_menu(lambda : self.main_window( 0 ))
 
             heading_frame = Frame(root,bg="grey")
-            Label(heading_frame,text="DATA DISPLAY", font='lucida 35 bold', justify='center', bg="grey").pack()
+            Label(heading_frame,text="DATA DISPLAY - Clip Data", font='lucida 35 bold', justify='center', bg="grey").pack()
             heading_frame.pack(fill=X)
 
 
@@ -135,7 +135,7 @@ class GUI_clip( In_out_clip_data, go_back_menu ):
             index_entry = Entry(option_frame, textvariable = index_, relief = SUNKEN,font = "lucida 20 bold")
             index_entry.pack()
             
-            Button(option_frame,text="Select",command= lambda: self.copied_element_options(index_.get(), 
+            Button(option_frame,text="Select",command= lambda: self.selected_element_options(index_.get(), 
                                                                                             dict_of_elements),
                     bg="blue", fg="white", justify=CENTER, height=1, width=10, relief=GROOVE,
                     border=10, font = "lucida 15 bold").pack(pady=10)
@@ -154,17 +154,19 @@ class GUI_clip( In_out_clip_data, go_back_menu ):
 
 
 
-
+#class to provide different uses to the user for recycle bin
 class GUI_Recycle( In_out_recycle_bin_data, go_back_menu ):
 
+    #to show options for selected item returned through data_showing
     def options_for_recycle_bin_data(self, index_, dict_of_elements):
+
         global root
 
         if dict_of_elements != {}:
 
             if index_ in dict_of_elements.keys():
-                root.destroy()
 
+                root.destroy()
                 root = Tk()
                 root.title("Options")
                 root.geometry("1200x600")
@@ -182,49 +184,42 @@ class GUI_Recycle( In_out_recycle_bin_data, go_back_menu ):
                 text_frame = Frame(main_frame,pady = 10, padx = 10)
                 #adding scrollbar to text_frame to make ease of going up and down in long copied text
                 scroll_bar = Scrollbar(text_frame) #vertical scrollbar  
-                scroll_bar.pack(side = RIGHT, fill = Y)       
-                
+                scroll_bar.pack(side = RIGHT, fill = Y)                
                 #to paste copied text by user
                 text = Text(text_frame, yscrollcommand = scroll_bar.set, height=25, padx=10,width=120)
                 text.pack(fill=BOTH)
-
                 text.insert("1.0", "{}".format( dict_of_elements[index_]))
                 scroll_bar.config( command = text.yview )
-
                 text_frame.pack(fill = BOTH)
 
                 options_frame = Frame(main_frame,pady=10)
-
-
                 Button(options_frame, text="Restore", justify=CENTER, 
                        command=lambda : In_out_recycle_bin_data.restore_(self, index_, dict_of_elements),
                        fg="white", relief=GROOVE, border=10,
-                       bg="blue", height=1, width=10, font="lucida 15 bold").pack()
-                
+                       bg="blue", height=1, width=10, font="lucida 15 bold").pack()                
                 Button(options_frame, text="Delete", justify=CENTER, 
                        command=lambda : In_out_recycle_bin_data.delete_(self, index_, dict_of_elements),
                        fg="white", relief=GROOVE, border=10,
                        bg="red", height=1, width=10, font="lucida 15 bold").pack()
-
                 options_frame.pack()
 
                 main_frame.pack()
-
             else:
                 tmsg.showwarning("Error","Index you chosen {} is not in Data Display".format(index_))
-
         else:
             tmsg.showinfo('No Data',"There is no data")
 
 
-
+    # it will open a notepad like window showing the copied elements user want to fetch
     def recycle_bin_data_showing(self, dict_of_elements):
         
         global root
 
         if dict_of_elements:
-            root.destroy()
 
+            # print( dict_of_elements )
+
+            root.destroy()
             root = Tk()
             root.title("Data - Recycle Bin")
             root.geometry("1200x630")
@@ -232,17 +227,16 @@ class GUI_Recycle( In_out_recycle_bin_data, go_back_menu ):
             self.go_back_and_exit_menu(lambda : self.main_window( 0 ))
 
             heading_frame = Frame(root,bg="grey")
-            Label(heading_frame,text="DATA DISPLAY", font='lucida 35 bold', justify='center', bg="grey").pack()
+            Label(heading_frame,text="DATA DISPLAY - Recycle Bin", font='lucida 35 bold',
+                     justify='center', bg="grey").pack()
             heading_frame.pack(fill=X)
 
 
             main_frame = Frame(root)
 
-            text_frame = Frame(main_frame,pady = 10, padx = 10)
-            
+            text_frame = Frame(main_frame,pady = 10, padx = 10)            
             scroll_bar = Scrollbar(text_frame) #vertical scrollbar  
-            scroll_bar.pack(side = RIGHT, fill = Y)       
-            
+            scroll_bar.pack(side = RIGHT, fill = Y)                   
             #to paste copied text by user
             text = Text(text_frame, yscrollcommand = scroll_bar.set, height=20)
             text.pack(fill=BOTH)
@@ -252,9 +246,7 @@ class GUI_Recycle( In_out_recycle_bin_data, go_back_menu ):
                 text.insert("1.0", "\n"+"x"*60)
 
             scroll_bar.config( command = text.yview ) 
-
             text_frame.pack(fill = BOTH)
-
 
             option_frame = Frame(main_frame)
 
@@ -272,12 +264,10 @@ class GUI_Recycle( In_out_recycle_bin_data, go_back_menu ):
                                                                        dict_of_elements),
                     bg="blue", fg="white", justify=CENTER, height=1, width=10, relief=GROOVE,
                     border=10, font = "lucida 15 bold").pack(pady=10)
-
             Button(option_frame, text="Delete All",
                     command = lambda : In_out_recycle_bin_data.delete_all( self, dict_of_elements),
                     bg = "red", fg = "white", height=1, width = 12, relief = GROOVE,
                     border = 10, font = "lucida 15 bold").pack(pady=5, padx=10,side=RIGHT)
-
             Button(option_frame, text="Restore All",
                     command = lambda : In_out_recycle_bin_data.restore_all( self, dict_of_elements),
                     bg = "blue", fg = "white", height=1, width = 12, relief = GROOVE,
@@ -292,17 +282,15 @@ class GUI_Recycle( In_out_recycle_bin_data, go_back_menu ):
 
 
 
-    
-
-
+#class to show main window to user provided with options for data they can fetch
 class Main_GUI( GUI_clip, GUI_Recycle ):
 
+    #to fetch n previously saved data to the main table clip_data
     def n_previous_copies(self):
 
         global root
 
         root.destroy()
-
         root = Tk()
         root.title("Fill n")
 
@@ -322,11 +310,11 @@ class Main_GUI( GUI_clip, GUI_Recycle ):
                 fg = "white", bg="blue", relief=GROOVE, border=10, height=1, width= 10,
                 font = "lucida 15 bold", justify=CENTER).pack( pady=5 )
 
-    def date_data(self, called_for):
+    #to provide any date's data which user want to look and for both clip as well as recycle bin 
+    def date_data(self, called_for):#called_for specify Recycle_bin or main clip_data
+
         global root
-
         root.destroy()
-
         root = Tk()
         root.title("Ask Date")
 
@@ -350,8 +338,8 @@ class Main_GUI( GUI_clip, GUI_Recycle ):
                 fg = "white", bg="blue", relief=GROOVE, border=10, height=1, width= 10,
                 font = "lucida 15 bold", justify=CENTER).pack( pady=5 )
 
-
-    def main_window(self, flag):
+    #first gui shown to user and providing buttons to fetch data for
+    def main_window(self, flag):#flag specify called for first time or not
 
         global root
 

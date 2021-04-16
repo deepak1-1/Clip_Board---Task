@@ -97,7 +97,7 @@ class DataBase_functions(Database):
                 tmsg.showinfo("Issue","Some issue in deleting from recycle bin\n\r{}".format(
                                 return_stat_recycle_data))
 
-        else:
+        else:# to execute when user want to terminate it 
             tmsg.showwarning("Stopped", "Successfully Terminated!")
         
         
@@ -106,20 +106,20 @@ class DataBase_functions(Database):
 class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_functions class
 
 
-    #method to go back to main window and quiting the app
+    #to update last copied text inside text widget 
     def last_copied_refresh(self, text_widget):
 
-        copied_text = str(pyc.paste())
-        text_widget.delete("1.0","end")
-        text_widget.insert("1.0", copied_text)
+        copied_text = str(pyc.paste())#copied it from clipboard
+        text_widget.delete("1.0","end")#deleted previous text inside it
+        text_widget.insert("1.0", copied_text)#updated new copied text
 
     
     #allow user to manually paste their copied text to save it in database
     def manual_paste(self):
+
         global root
         #closing previous window
         root.destroy()
-
         root = Tk()
         root.title("Manual Copy")
 
@@ -141,12 +141,10 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
 
         #adding scrollbar to text_frame to make ease of going up and down in long copied text
         scroll_bar = Scrollbar(text_frame) #vertical scrollbar  
-        scroll_bar.pack(side = RIGHT, fill = Y)       
-        
+        scroll_bar.pack(side = RIGHT, fill = Y)        
         #to paste copied text by user
         text = Text(text_frame, yscrollcommand = scroll_bar.set)
         text.pack(fill=BOTH)
-
         scroll_bar.config( command = text.yview )#adding it to text widget
 
         #to pass text to our database class function when clicked on this button
@@ -154,8 +152,7 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
             command =lambda : DataBase_functions.storing_copied_text(self,text.get("1.0","end"),"manual_paste"),
             width=15,height=2, relief=GROOVE, border=10,font="lucida 15 bold",
             justify=CENTER, bg="blue",fg="white"
-            ).pack(pady=10)
-        
+            ).pack(pady=10)    
 
         text_frame.pack(fill=BOTH)#packing frame 2 to cover both space x and y
 
@@ -164,14 +161,13 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
     #method will fetch last copied text to screen and ask whether you want to save or not
     #meanwhile you can edit it too
     def checking_last_copied(self):
+
         global root
-
-        root.destroy()
-
+        root.destroy()#deleted previous window
         root = Tk()#creating window
         root.title("Copied Text")
 
-        # created menu in root as root is global everywhere, so there is no error
+        # menu to refresh and go back and do exit on the basis of which one user want to use
         Menubar = Menu(root)
         Menubar.add_command(label='Go back',command=lambda : self.main_window(0))
         Menubar.add_command(label="Refresh",command=lambda :self.last_copied_refresh(text))
@@ -188,19 +184,14 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
 
         #adding scrollbar to text_frame to make ease of going up and down in long copied text
         scroll_bar = Scrollbar(text_frame)  
-        scroll_bar.pack(side = RIGHT, fill = Y)       
-        
+        scroll_bar.pack(side = RIGHT, fill = Y)          
         #to paste copied text by user
         text = Text(text_frame, yscrollcommand = scroll_bar.set)
         text.pack(fill=BOTH)
-
         scroll_bar.config( command = text.yview )#adding it to text widget
-
         copied_text = str(pyc.paste())
         text.insert("1.0",copied_text)
-
         #to pass text to our database class function when clicked on this button
-
         Button(text_frame,text="Save",
             command = lambda : DataBase_functions.storing_copied_text(self,text.get("1.0","end"),"last_copied"),
             width=15,height=2, relief=GROOVE, border=10,font="lucida 15 bold",
@@ -242,16 +233,12 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
         Button(text_frame, text="Manual Paste", command=self.manual_paste, font="lucida 25 bold",
                      relief=GROOVE, border=10,
                     justify=CENTER, width=16, height=1).pack()
-        
-
         Button(text_frame, text="Save(Last copied)", command=self.checking_last_copied,
                      font="lucida 25 bold", relief=GROOVE, 
                     border=10, justify=CENTER, width=16, height=1).pack()
-
         Button(text_frame, text="Delete All Record", command=lambda : DataBase_functions.delete_all(self),
                     font="lucida 25 bold", relief=GROOVE, 
                     border=10, justify=CENTER, width=16, height=1).pack()
-        
         #on click will quit the GUI window 
         Button(text_frame, text="Exit", command=quit, font="lucida 25 bold", relief=GROOVE, border=10,
                     justify=CENTER, bg="RED", fg="white", width=8, height=1).pack()
@@ -262,7 +249,7 @@ class GUI_part(DataBase_functions):#inherited From Manual_pasting.Database_funct
 
 if __name__ == "__main__":
     gui = GUI_part()
-    gui.main_window(1)
+    gui.main_window(1)#calling main_window to show user interface
     root.mainloop()
     
 

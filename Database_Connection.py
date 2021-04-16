@@ -7,10 +7,11 @@ class Database:
 
     #constructor to make connections with database and create recycle bin table
     def __init__(self):
-        self.connector = sql.connect("Testing.db")
+        self.connector = sql.connect("Clip_Board_Database.db")
         self.cur = self.connector.cursor()
 
-        
+    
+    # to create a table Name- Recycle_bin inside data base 
     def create_table_recycle_bin(self):
 
         recycle_bin_query = """ CREATE TABLE Recycle_bin(
@@ -20,6 +21,7 @@ class Database:
                                 );
                             """
 
+        # to handle errors if any
         try:
             self.cur.execute(recycle_bin_query)
             self.connector.commit()
@@ -38,7 +40,7 @@ class Database:
                             Time_ CHAR NOT NULL
                         );
                  """
-        #handling Exception if table already exists
+        #handling error if any
         try:
             self.cur.execute(query)
             self.connector.commit()
@@ -73,8 +75,10 @@ class Database:
 
 if __name__ == "__main__":
 
+    # if database is not created it will create else establish connection
     db = Database()
 
+    #simply will create both table
     db.create_table_clip_data()
     db.create_table_recycle_bin()
     
